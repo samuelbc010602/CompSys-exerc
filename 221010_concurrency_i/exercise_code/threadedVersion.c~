@@ -1,0 +1,91 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/mman.h>
+#include <assert.h>
+#include <pthread.h>
+#include <errno.h>
+
+struct dataHolder{
+    unsigned char * dataToRead;
+    pthread_mutex_t* sum_mutex;
+    long * sum;
+    int start;
+    int end;
+};
+
+void * readBytes(void * data){
+    struct dataHolder dataToPass = *((struct dataHolder*)data);
+    int local_sum = 0;
+    for(int i = dataToPass.start;i<dataToPass.end;i++){
+	local_sum +=dataToPass.dataToRead[i];
+    }
+
+    
+    pthread_mutex_lock(dataToPass.sum_mutex);
+    dataToPass.sum += local_sum;
+    pthread_mutex_unlock(dataToPass.sum_mutex);
+    
+    printf("executing worker function");
+}
+    
+
+
+int main(int argc, char** argv) {
+  printf("starting program");
+  //assert(argc == 2);
+  char *filename = argv[1];
+
+  // Open the given file and determine its size.x
+  FILE* file = fopen(filename, "r");
+  assert(file != NULL);
+  fseek(file, 0, SEEK_END);
+  size_t size = ftell(file);
+  fseek(file, 0, SEEK_SET);
+
+  // mmap file as an array of 'size' bytes.
+  unsigned char * data = mmap(NULL,
+              size,
+              PROT_READ,
+              MAP_PRIVATE,
+              fileno(file), 0);
+  
+  assert(data != MAP_FAILED);
+  fclose(file);
+  printf("check here");
+
+  pthread_mutex_t sum_mutex = PTHREAD_MUTEX_INITIALIZER;
+  
+  long sum = 0;
+    
+  pthread_t id1,id2;
+  pthread_t idHolder[] = {id1,id2};
+
+  for(int i = 0;i<2;i++){
+      printf("thread spawned");
+      struct dataHolder * ex;
+      ex->start = (size/2)*(i);
+      ex->end = (size/2)*(i+1);
+      ex->dataToRead = data;
+      ex->sum = &sum;
+      ex->sum_mutex = &sum_mutex;
+      
+      pthread_create(&idHolder[i], NULL, readBytes,&ex);
+  }
+  
+  for(int i = 0;i<2;i++){
+      pthread_join(idHolder[i],NULL);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
