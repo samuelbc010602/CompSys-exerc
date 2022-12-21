@@ -33,9 +33,9 @@ slli x11 x4 1		=    fe -- de ex mm wb
 add x11  x16  x11	=    	fe -- -- de ex mm wb
 lw x11 8(x11) 		=	      fe -- -- de ex mm wb
 slli x12 x4 2		=	      	    fe -- de ex mm wb
-add x12,x17,x12		= 		       	  fe -- de ex mm wb
-sw x11 0(x12)		= 		       	     fe -- de de ex mm wb
-bge x9 x4 loop		= 			           fe -- de ex mm wb
+add x12,x17,x12		= 		       	   fe -- -- de ex mm wb
+sw x11 0(x12)		= 		       	      fe -- -- de de ex mm wb
+bge x9 x4 loop		= 			             fe -- de ex mm wb
 
 
 
@@ -50,7 +50,7 @@ slli x11 x4 1		= fe -- de ex wb
 add x11  x16  x11	=    fe -- de ex wb
 lw x11 8(x11) 		=    fe -- de -- ag mm wb !!
 slli x12 x4 2		=    	fe -- de ex wb (der kan ikke køres tre de på samme tid derfor stall, selvom den er ufhængig)
-add x12,x17,x12		= 	   fe -- de ex wb (den kan først "ex" når wb fra den forrige er foretaget)
+add x12,x17,x12		= 	    fe -- de ex wb (den kan først "ex" når wb fra den forrige er foretaget)
 sw x11 0(x12)		=	      fe -- de ag mm (ag nedenunder wb)
 bge x9 x4 loop		=	      	 fe de ex wb (uafhængig)
 
