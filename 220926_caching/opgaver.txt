@@ -1,0 +1,55 @@
+5.1.1 = 2
+5.1.2 = i og j i løkkerne der bruges til at indeksere, da værdierne bliver ændret på stedet
+5.1.3 = Indeksering af array'et er spatial locality da vi skifter plads hver gang i memory, altså A(i,j) i matlab udgaven
+5.1.4 = Indeksering af værdierne j og I brugt til at indeksere array'et
+5.1.5 = ??? samme som sidste spørgsmål
+5.1.6 = De begge to bruger elementer således A(i,j) og A(j,i) altså row- og column-wise. Samme locality 
+
+5.2 = 
+    L = 16 blokke med 32 bits
+    B = 4
+    N = 4
+
+Set 0 = valid 1,x tag =, block =  
+ikke færdig
+
+Performance af sum-array-cols og sum-array-rows:
+
+Input for begge programmer 
+cols og rows
+
+1 10 = 0.006s 0.007s
+10 100 = 0.005s 0.004s
+100 1000 = 0.006s 0.005s
+1000 10000 = 0.099s 0.036
+rows er klart hurtigere 
+
+
+Locality af 3d array:
+
+Koden skal se sådan her ud for at opnå minimal spatial locality:
+/* You might want to use different values for L,M,N when performing benchmarks. */
+#define L 10
+#define M 10
+#define N 10
+
+long sum_array_3d(long a[L][M][N])
+{
+  long sum = 0;
+  int i, j, k;
+  for(int l = 0;l<L;l++){
+      for(int m = 0;m<M;m++){
+          for(int n = 0;n<N;n++){
+              sum += a[l][m][n]
+          }
+      }
+  return sum;
+}
+
+Det sidste indeks svarer til den inderste løkke i denne udgave
+
+Performance af de to udgaver
+3d og 3dopt
+10 10 10 = 0.005 0.005
+
+
