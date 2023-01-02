@@ -1,0 +1,36 @@
+R13 a)
+To bruger kan bruge systemet med circuit switching da 2mbps/1mbps = 2. Når brugerne 20% af tiden sender data sender de 1mbps ad gangen, derfor er der kun plads til to brugere
+
+R13 b)
+Der vil næsten ikke være nogen forsinkelse ved packet switching og to brugere fordi trans. rate er på 2mbps hvilket er nok til at sende 2*1mbps på samme tid uden brug for en buffer,
+overstiger vi de 2mbps med flere end to personer vil der selvfølgelig opstå en buffer
+
+R13 c)
+20 procent (måske)
+
+R13 d)
+Sandsynligheden for alle tre brugere sender data på samme tid er er (20/100)^3 = (1/5)^3 = 1/125 = 0.008*100 = 0.8
+Bufferen vokser når de efter router har modtaget 2mbps og må delegere de overskydend til bufferen
+
+R14
+To nærtliggende ISP kan vælge at oprette en intern link for at spare penge, ved at omgå links der går igennem en højere stående ISP som en tier-1 ISP.
+En IXP kan ses som en samling af en masse forbundne ISP som man kan få adgang til ved bare at have adgang til denne IXP, derfor kan IXP tjene penge ved at give adgang til en masse
+sammenkoblede ISP'er.
+
+P4 a)
+4*4 = 16
+
+P4 b)
+2*4 = 8
+
+P4 c)
+De først fire connections er fra a til b, da a og b er imellem [a,b], derfra kan de sidste fire connections gå direkte fra b til d
+
+P13
+L/R (måske)
+
+
+
+
+
+
