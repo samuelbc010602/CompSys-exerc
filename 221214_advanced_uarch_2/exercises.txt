@@ -1,0 +1,208 @@
+
+# Øvelser 14. december
+
+Bemærk at noten om afviklingsplot er opdateret pr 13. december
+for at kunne danne baggrund for de følgende opgaver.
+
+
+## Opgave 1
+
+Denne opgave handler om forskellige out-of-order maskiners ydeevne ved udførelse
+af en og samme stump kode.
+
+Husk at angive eventuelle antagelser du måtte gøre i forbindelse med besvarelsen.
+
+
+Nedenfor ses to iterationer af en løkke-krop udført på en 2-vejs out-of-order mikroarkitktur med max 1 cache tilgang pr clock
+
+    addi x4,x4,1        Fa Fb Fc De Fu Al Rn Qu pk rd ex wb Ca Cb
+    slli x11,x4,5       Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb Ca Cb
+    add  x11,x16,x11       Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb Ca Cb
+    lw   x11,8(x11)        Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ag ma mb mc wb Ca Cb
+    slli x12,x4,2             Fa Fb Fc De Fu Al Rn Qu pk rd ex wb -- -- -- -- Ca Cb
+    add  x12,x17,x12          Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- Ca Cb
+    sw   x11,0(x12)              Fa Fb Fc De Fu Al Rn Qu -- pk rd ag ma mb mc -- Ca Cb
+    -                                                 Qu -- -- -- -- pk rd st
+    bge  x9,x4,Loop              Fa Fb Fc De Fu Al Rn Qu pk rd ex -- -- -- -- -- -- Ca Cb
+    addi x4,x4,1                    Fa Fb Fc De Fu Al Rn Qu pk rd ex wb -- -- -- -- Ca Cb
+    slli x11,x4,5                   Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- Ca Cb
+    add  x11,x16,x11                   Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- Ca Cb
+    lw   x11,8(x11)                    Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ag ma mb mc wb Ca Cb
+    slli x12,x4,2                         Fa Fb Fc De Fu Al Rn Qu pk rd ex wb -- -- -- -- Ca Cb
+    add  x12,x17,x12                      Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- Ca Cb
+    sw   x11,0(x12)                          Fa Fb Fc De Fu Al Rn Qu -- pk rd ag ma mb mc -- Ca Cb
+    -                                                             Qu -- -- -- -- pk rd st
+    bge  x9,x4,Loop                          Fa Fb Fc De Fu Al Rn Qu pk rd ex -- -- -- -- -- -- Ca Cb
+
+Bemærk at store instruktioner opsplittes i to (cache opslag og data skrivning til skrive-kø)
+som scheduleres separat.
+
+### Spg 1.1
+
+Hvad er IPC hvis løkken udføres uendeligt mange gange og alle hop forudsiges korrekt ?
+
+Før løkken initialiseres vil den have gennemgået 21 cc. Siden hver iteration af løkken kræver 4 iterationer mere så vil de først 21 cc blive udlignet da løkken køre uendeligt mange gange. 
+Selve løkken går fra bge  x9,x4,Loop -> sw   x11,0(x12) og den efterfølgende hjælpe instruktion
+
+Antal instruktioner / cc for hver iteration = 8 / 4 = 2
+
+### Spg 1.2
+
+20 gennemløb af løkken koster 20x4 clocks + omkostningen ved den sidste fejlforudsigelse.
+
+Vi kan illustrere fejlforudsigelsen således:
+
+~~~
+    bge  x9,x4,Loop              Fa Fb Fc De Fu Al Rn Qu pk rd ex -- -- -- -- -- -- Ca Cb
+    addi x4,x4,1                                                  Fa Fb Fc De Fu Al Rn Qu pk rd ex wb Ca Cb
+~~~
+
+Vi kan se at fejlforudsigelsen koster 10 clock cycles (11, men en enkelt clocks tab er allerede indregnet).
+Samlet vil de 20 gennemløb tage 90 clock. Da de indeholder 160 instruktioner får vi IPC = 160/90 = 16/9
+
+
+
+hint: inkluder omkostningen ved den afsluttende fejlforudsigelse.
+
+
+
+Nedenfor ses to iterationer af den samme løkke-krop på en 4-vejs out-of-order mikroarkitektur med max 2 cache tilgange pr clock.
+
+    addi x4,x4,1        Fa Fb Fc De Fu Al Rn Qu pk rd ex wb Ca Cb
+    slli x11,x4,5       Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb Ca Cb
+    add  x11,x16,x11    Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ex wb Ca Cb
+    lw   x11,8(x11)     Fa Fb Fc De Fu Al Rn Qu -- -- -- pk rd ag ma mb mc wb Ca Cb
+    slli x12,x4,2          Fa Fb Fc De Fu Al Rn Qu pk rd ex wb -- -- -- -- -- Ca Cb
+    add  x12,x17,x12       Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- Ca Cb
+    sw   x11,0(x12)        Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ag ma mb mc -- Ca Cb
+    -                                           Qu -- -- -- -- -- -- pk rd st
+    bge  x9,x4,Loop        Fa Fb Fc De Fu Al Rn Qu pk rd ex -- -- -- -- -- -- -- Ca Cb
+    addi x4,x4,1              Fa Fb Fc De Fu Al Rn Qu pk rd ex wb -- -- -- -- -- Ca Cb
+    slli x11,x4,5             Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- Ca Cb
+    add  x11,x16,x11          Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ex wb -- -- -- Ca Cb
+    lw   x11,8(x11)           Fa Fb Fc De Fu Al Rn Qu -- -- -- pk rd ag ma mb mc wb Ca Cb
+    slli x12,x4,2                Fa Fb Fc De Fu Al Rn Qu pk rd ex wb -- -- -- -- -- Ca Cb
+    add  x12,x17,x12             Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- Ca Cb
+    sw   x11,0(x12)              Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ag ma mb mc -- Ca Cb
+    -                                                 Qu -- -- -- -- -- -- pk rd st
+    bge  x9,x4,Loop              Fa Fb Fc De Fu Al Rn Qu pk rd ex -- -- -- -- -- -- -- Ca Cb
+
+### Spg 1.3
+
+Hvad er IPC for 20 gennemløb af løkken?
+Hver iteration af løkken tager to 2 CC, derfor 20*2, da der er 20 gennemløb, dette skal vi plusse med omkostningen for fejlforudsigelsen, 20*2+10 = 50. Der vil blive gennemførst 8 instruktioner for hvert gennemløb, derfor 20*8 = 160. Her tæller vi ikke de to instruktioner for evt fejl forudsigelse.
+
+
+IPC = 160/50 = 3.2
+
+
+
+Nedenfor ses to iterationer af den samme løkkekrop på en 8-vejs out-of-order mikroarkitektur
+med max 3 cache tilgange pr clock
+
+    addi x4,x4,1        Fa Fb Fc De Fu Al Rn Qu pk rd ex wb Ca Cb
+    slli x11,x4,5       Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb Ca Cb
+    add  x11,x16,x11    Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ex wb Ca Cb
+    lw   x11,8(x11)     Fa Fb Fc De Fu Al Rn Qu -- -- -- pk rd ag ma mb mc wb Ca Cb
+    slli x12,x4,2       Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- -- Ca Cb
+    add  x12,x17,x12    Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ex wb -- -- -- -- Ca Cb
+    sw   x11,0(x12)     Fa Fb Fc De Fu Al Rn Qu -- -- -- pk rd ag ma mb mc -- Ca Cb
+    -                                        Qu -- -- -- -- -- -- -- pk rd st
+    bge  x9,x4,Loop     Fa Fb Fc De Fu Al Rn Qu -- pk rd ex -- -- -- -- -- -- Ca Cb
+    addi x4,x4,1           Fa Fb Fc De Fu Al Rn Qu pk rd ex wb -- -- -- -- -- Ca Cb
+    slli x11,x4,5          Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- Ca Cb
+    add  x11,x16,x11       Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ex wb -- -- -- Ca Cb
+    lw   x11,8(x11)        Fa Fb Fc De Fu Al Rn Qu -- -- -- pk rd ag ma mb mc wb Ca Cb
+    slli x12,x4,2          Fa Fb Fc De Fu Al Rn Qu -- pk rd ex wb -- -- -- -- -- Ca Cb
+    add  x12,x17,x12       Fa Fb Fc De Fu Al Rn Qu -- -- pk rd ex wb -- -- -- -- Ca Cb
+    sw   x11,0(x12)        Fa Fb Fc De Fu Al Rn Qu -- -- -- pk rd ag ma mb mc -- Ca Cb
+    -                                           Qu -- -- -- -- -- -- -- pk rd st
+    bge  x9,x4,Loop        Fa Fb Fc De Fu Al Rn Qu -- pk rd ex -- -- -- -- -- -- Ca Cb
+
+### Spg 1.4
+
+Hvad er IPC for 20 gennemløb af løkken.
+
+Her koster det kun 1 cc for hvert gennemløb, derfor 20*1 = 20 cc, plus fejlforudsigelse på 10 cc, derfor 30 cc. Der er 8 instruktioner for hvert gennemløb derfor 20*8 = 160. 
+
+IPC = 160/30 = 5.33
+
+
+### Spg 1.5
+
+hvad vil IPC være for 20 gennemløb af løkken på en 12-vejs ooo med max 4 cache tilgange pr clock ?
+
+Giv en solid begrundelse for dit svar. Opstil om nødvendigt et afviklingsplot.
+
+Der er en dataafhængighed fra hver iteration til den næste via x4.
+En iteration kan derfor ikke afvikles hurtigere end den næste værdi for x4 kan produceres.
+Da x4 beregnes ved "addi x4,x4,1" som har en latenstid på 1, kan en iteration aldrig afvikles
+på mindre end 1 cyclus. IPC bliver således som beregnet i 1.4
+
+Det vil stadig tage IPC = 160/30 = 5.33, da den 13 instruktion er inde i løkken og derfor vil blive forlænget med 1 cc. 
+
+
+## Opgave 2
+
+Opstil en risc-v kodesekvens:
+
+ * hvor en load der følger efter en store tilgår samme adresse og derfor skal "se" data fra store instruktionen
+ * hvor store data endnu ikke er tilgængelig i store-køen på det tidspunkt, hvor load instruktionen skal bruge det
+
+Opgaven kræver ikke opstilling af et afviklingsplot, men det gør diskussionen nemmere:
+(her for en 2-vejs med 1 opslag i cache pr clock)
+
+~~~
+lw  x3,0(x4)   Fa Fb Fc De Fu Al Rn Qu pk rd ag ma mb mc wb Ca Cb
+lw  x2,0(x3)   Fa Fb Fc De Fu Al Rn Qu -- -- -- -- pk rd ag ma mb mc wb Ca Cb
+sw  x2,0(x5)      Fa Fb Fc De Fu Al Rn Qu pk rd ag ma mb mc -- -- -- -- Ca Cb
+-                                      Qu -- -- -- -- -- -- -- pk rd st Ca Cb
+lw  x3,0(x5)      Fa Fb Fc De Fu Al Rn Qu -- pk rd ag ma mb mc -- -- -- wb Ca Cb
+~~~
+
+Det spørgsmål som kunne diskuteres er hvor sent data kunne ankomme til store-køen
+og stadig forwardes af den afhængige load instruktion i tide.
+
+I noten om afviklingsplot ser det ud til at "wb" kan finde sted umiddelbart efter "st",
+som er der, hvor værdien skrives til store-køen, så det kan fungere som præcis definition.
+Det beskrives dog ikke præcis hvordan dette tænkes opnået.
+ 
+
+## Opgave 3
+
+### Spg 1
+
+Opstil en risc-v kodesekvens:
+
+ * hvor en load der følger efter en store tilgår samme adresse og derfor skal "se" data fra store instruktionen
+ * hvor store addressen endnu ikke er tilgængelig i store-køen på det tidspunkt, hvor load instruktionen har brug
+   for at sammenligne addresser.
+
+diskuter/opstil/giv en mere præcis definition af det sidste af disse to krav.
+
+~~~
+lw  x3,0(x4)   Fa Fb Fc De Fu Al Rn Qu pk rd ag ma mb mc wb Ca Cb
+lw  x2,0(x3)   Fa Fb Fc De Fu Al Rn Qu -- -- -- -- pk rd ag ma mb mc wb Ca Cb
+sw  x2,0(x5)      Fa Fb Fc De Fu Al Rn Qu pk rd ag ma mb mc -- -- -- -- Ca Cb
+-                                      Qu -- -- -- -- -- -- -- pk rd st Ca Cb
+lw  x3,0(x5)      Fa Fb Fc De Fu Al Rn Qu -- -- -- -- -- -- -- -- pk rd ag ma mb mc wb Ca Cb
+~~~
+
+Her kan "ag", address generate, først udføres efter "st"
+
+
+### Spg 2
+
+Opstil et afviklingsplot som illustrerer ovenstående på en 4-vejs out-of-order mikroarkitektur med en
+cache tilgang pr clock. Diskuter evt hvornår load instruktionen tidligst kan gennemføre et writeback.
+
+Det ville ikke ændre noget siden "wb" først kan gennemføres efter cache er blevet tilgået for de forrige instruktion som den givne load instruktion er afhængig af, siden cache kun kan tilgås en gang per cc. 
+
+### Spg 3
+
+I forlængelse af spg 2. Diskuter hvornår en instruktion som afhænger af load-instruktionen tidligst
+vil kunne begynde udførelse.
+
+Den først vil først "ex" efter "wb" for den load instruktion som den er afhængig af. 
+
+
